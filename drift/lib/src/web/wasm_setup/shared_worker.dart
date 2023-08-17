@@ -55,6 +55,7 @@ class SharedDriftWorker {
           throw ArgumentError('Unknown message');
       }
     } catch (e) {
+      print('SharedDriftWorker error: ${e.toString()}');
       WorkerError(e.toString()).sendToPort(client);
       client.close();
     }
@@ -62,6 +63,7 @@ class SharedDriftWorker {
 
   Future<SharedWorkerCompatibilityResult> _startFeatureDetection(
       String databaseName) async {
+    print('Checking compatibility for $databaseName');
     // First, let's see if this shared worker can spawn dedicated workers.
     final hasWorker = supportsWorkers;
     final canUseIndexedDb = await checkIndexedDbSupport();
@@ -110,6 +112,7 @@ class SharedDriftWorker {
       }
 
       messageSubscription = worker.onMessage.listen((event) {
+        print('SharedWorker: got some kind of message $event');
         final data =
             WasmInitializationMessage.fromJs(getProperty(event, 'data'));
         final compatibilityResult = data as DedicatedWorkerCompatibilityResult;
@@ -123,9 +126,11 @@ class SharedDriftWorker {
       });
 
       errorSubscription = worker.onError.listen((event) {
+        print('SharedWorker: is this an error we are swallowing? $event');
         result(false, false, false, const []);
         worker.terminate();
         _dedicatedWorker = null;
+        print('SharedWorker: dedicated worker terminated');
       });
 
       return completer.future;

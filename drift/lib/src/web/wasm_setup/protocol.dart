@@ -178,7 +178,9 @@ final class WorkerError extends WasmInitializationMessage implements Exception {
   WorkerError(this.error);
 
   factory WorkerError.fromJsPayload(Object payload) {
-    return WorkerError(payload as String);
+    final pstr = payload as String;
+    print('WorkerError.fromJsPayload $pstr');
+    return WorkerError(pstr);
   }
 
   @override
@@ -224,6 +226,12 @@ final class ServeDriftDatabase extends WasmInitializationMessage {
 
   @override
   void sendTo(PostMessage sender) {
+    print('ServeDriftDatabase.sendTo starting'
+        '  sqlite3WasmUri: $sqlite3WasmUri'
+        '  port: $port'
+        '  storage: $storage'
+        '  databaseName: $databaseName'
+        '  initializationPort: $initializationPort');
     final object = newObject<Object>();
     setProperty(object, 'sqlite', sqlite3WasmUri.toString());
     setProperty(object, 'port', port);
