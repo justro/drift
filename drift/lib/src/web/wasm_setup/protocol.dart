@@ -1,7 +1,9 @@
 // ignore_for_file: public_member_api_docs
 
+import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
+import 'dart:js_interop';
 
 import 'package:js/js_util.dart';
 import 'package:sqlite3/wasm.dart';
@@ -294,6 +296,14 @@ final class DedicatedWorkerCompatibilityResult extends CompatibilityResult {
           .addAll(EncodeLocations.readFromJs(getProperty(payload, 'existing')));
     }
 
+    print('DedicatedWorkerCompatibilityResult: '
+        '  supportsNestedWorkers: ${getProperty(payload, 'supportsNestedWorkers')},'
+        '  canAccessOpfs: ${getProperty(payload, 'canAccessOpfs')},'
+        '  supportsSharedArrayBuffers: ${getProperty(payload, 'supportsSharedArrayBuffers')},'
+        '  supportsIndexedDb: ${getProperty(payload, 'supportsIndexedDb')},'
+        '  indexedDbExists: ${getProperty(payload, 'indexedDbExists')},'
+        '  opfsExists: ${getProperty(payload, 'opfsExists')},'
+        '  existingDatabase: $existingDatabases');
     return DedicatedWorkerCompatibilityResult(
       supportsNestedWorkers: getProperty(payload, 'supportsNestedWorkers'),
       canAccessOpfs: getProperty(payload, 'canAccessOpfs'),

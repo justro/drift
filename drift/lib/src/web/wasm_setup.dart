@@ -58,10 +58,12 @@ class WasmDatabaseOpener {
   );
 
   RequestCompatibilityCheck _createCompatibilityCheck() {
+    print('WasmDatabaseOpener._createCompatibilityCheck');
     return RequestCompatibilityCheck(databaseName ?? 'driftCompatibilityCheck');
   }
 
   void _handleCompatibilityResult(CompatibilityResult result) {
+    print('WasmDatabaseOpener._handleCompatibilityResult');
     missingFeatures.addAll(result.missingFeatures);
 
     final databaseName = this.databaseName;
@@ -87,15 +89,18 @@ class WasmDatabaseOpener {
   }
 
   Future<WasmProbeResult> probe() async {
+    print('WasmDatabaseOpener.probe');
     try {
       await _probeShared();
     } on Object {
+      print('WasmDatabaseOpener.probeShared error');
       _sharedWorker?.close();
       _sharedWorker = null;
     }
     try {
       await _probeDedicated();
     } on Object {
+      print('WasmDatabaseOpener.probeDedicated error');
       _dedicatedWorker?.close();
       _dedicatedWorker = null;
     }
@@ -105,6 +110,7 @@ class WasmDatabaseOpener {
   }
 
   Future<void> _probeDedicated() async {
+    print('WasmDatabaseOpener._probeDedicated');
     if (supportsWorkers) {
       final dedicatedWorker = _dedicatedWorker =
           _DriftWorker.dedicated(Worker(driftWorkerUri.toString()));
@@ -130,6 +136,7 @@ class WasmDatabaseOpener {
   }
 
   Future<void> _probeShared() async {
+    print('WasmDatabaseOpener._probeDedicated');
     if (supportsSharedWorkers) {
       final sharedWorker =
           SharedWorker(driftWorkerUri.toString(), 'drift worker');
@@ -176,15 +183,19 @@ final class _DriftWorker {
             StreamQueue(_readMessages(worker.port!.onMessage, worker.onError));
 
   void send(Object? msg, [List<Object>? transfer]) {
+    print('_DriftWorker.send');
     switch (worker) {
       case final Worker worker:
+        print('_DriftWorker.send Worker');
         worker.postMessage(msg, transfer);
       case SharedWorker():
+        print('_DriftWorker.send SharedWorker');
         portForShared!.postMessage(msg, transfer);
     }
   }
 
   void close() {
+    print('_DriftWorker.close');
     workerMessages.cancel();
 
     switch (worker) {
@@ -221,6 +232,7 @@ final class _ProbeResult implements WasmProbeResult {
     String name, {
     FutureOr<Uint8List?> Function()? initializeDatabase,
   }) async {
+    print('_ProbeResult.open');
     final channel = MessageChannel();
     final initializer = initializeDatabase;
     final initChannel = initializer != null ? MessageChannel() : null;
@@ -299,6 +311,7 @@ final class _ProbeResult implements WasmProbeResult {
     VirtualFileSystem vfs,
     FutureOr<Uint8List?> Function()? initializer,
   ) async {
+    print('WasmDatabaseOpener._probeDedicated');
     final sqlite3 = await WasmSqlite3.loadFromUrl(opener.sqlite3WasmUri);
     sqlite3.registerVirtualFileSystem(vfs);
 
@@ -320,6 +333,7 @@ final class _ProbeResult implements WasmProbeResult {
 
   @override
   Future<void> deleteDatabase(ExistingDatabase database) async {
+    print('_ProbeResult.deleteDatabase');
     switch (database.$1) {
       case WebStorageApi.indexedDb:
         await deleteDatabaseInIndexedDb(database.$2);

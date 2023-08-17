@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:js_interop';
 
 import 'package:drift/wasm.dart';
 import 'package:js/js_util.dart';
@@ -30,7 +29,7 @@ class DedicatedDriftWorker {
   }
 
   Future<void> _handleMessage(WasmInitializationMessage message) async {
-    print('dedicated worker Received message: ${message.toJS}');
+    print('dedicated worker Received message: $message');
     switch (message) {
       case RequestCompatibilityCheck(databaseName: var dbName):
         print('Requesting compatibility check for $dbName');
