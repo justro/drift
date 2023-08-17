@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:js_interop';
 
 import 'package:drift/wasm.dart';
 import 'package:js/js_util.dart';
@@ -21,6 +22,7 @@ class DedicatedDriftWorker {
   DedicatedDriftWorker(this.self);
 
   void start() {
+    print('dedicated worker started');
     self.onMessage.listen((event) {
       final message = WasmInitializationMessage.read(event);
       _handleMessage(message);
@@ -28,8 +30,10 @@ class DedicatedDriftWorker {
   }
 
   Future<void> _handleMessage(WasmInitializationMessage message) async {
+    print('dedicated worker Received message: ${message.toJS}');
     switch (message) {
       case RequestCompatibilityCheck(databaseName: var dbName):
+        print('Requesting compatibility check for $dbName');
         bool supportsOpfs = false, supportsIndexedDb = false;
 
         await _checkCompatibility.synchronized(() async {
@@ -67,7 +71,7 @@ class DedicatedDriftWorker {
           indexedDbExists = await checkIndexedDbExists(dbName);
         }
 
-        DedicatedWorkerCompatibilityResult(
+        final res = DedicatedWorkerCompatibilityResult(
           supportsNestedWorkers: hasProperty(globalThis, 'Worker'),
           canAccessOpfs: supportsOpfs,
           supportsIndexedDb: supportsIndexedDb,
@@ -76,14 +80,26 @@ class DedicatedDriftWorker {
           opfsExists: opfsExists,
           indexedDbExists: indexedDbExists,
           existingDatabases: existingDatabases,
-        ).sendToClient(self);
+        );
+        print('compatibility result: '
+            '  supportsNestedWorkers: ${res.supportsNestedWorkers},'
+            '  canAccessOpfs: ${res.canAccessOpfs},'
+            '  supportsIndexedDb: ${res.supportsIndexedDb},'
+            '  supportsSharedArrayBuffers: ${res.supportsSharedArrayBuffers},'
+            '  opfsExists: ${res.opfsExists},'
+            '  indexedDbExists: ${res.indexedDbExists},'
+            '  existingDatabases: ${res.existingDatabases}');
+        res.sendToClient(self);
       case ServeDriftDatabase():
+        print('Serving drift database');
         _servers.serve(message);
       case StartFileSystemServer(sqlite3Options: final options):
+        print('Starting file system server: $options');
         final worker = await VfsWorker.create(options);
         self.postMessage(true);
         await worker.start();
       case DeleteDatabase(database: (final storage, final name)):
+        print('Deleting database: $storage, $name');
         try {
           switch (storage) {
             case WebStorageApi.indexedDb:
@@ -95,6 +111,7 @@ class DedicatedDriftWorker {
           // Send the request back to indicate a successful delete.
           message.sendToClient(self);
         } catch (e) {
+          print('Error deleting database: $e');
           WorkerError(e.toString()).sendToClient(self);
         }
 

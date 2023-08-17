@@ -35,6 +35,7 @@ class SharedDriftWorker {
     try {
       final message = WasmInitializationMessage.read(event);
 
+      print('Shared worker received message: $message');
       switch (message) {
         case RequestCompatibilityCheck(databaseName: var dbName):
           final result = await _startFeatureDetection(dbName);

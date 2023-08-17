@@ -19,18 +19,44 @@ sealed class WasmInitializationMessage {
     final type = getProperty<String>(jsObject, 'type');
     final payload = getProperty<Object?>(jsObject, 'payload');
 
+    switch (type) {
+      case WorkerError.type:
+        print('WorkerError: ${payload!}');
+        break;
+      case ServeDriftDatabase.type:
+        print('ServeDriftDatabase.fromJsPayload ${payload!}');
+        break;
+      case StartFileSystemServer.type:
+        print('StartFileSystemServer.fromJsPayload ${payload!}');
+        break;
+      case RequestCompatibilityCheck.type:
+        print('RequestCompatibilityCheck.fromJsPayload ${payload!}');
+        break;
+      case DedicatedWorkerCompatibilityResult.type:
+        print('DedicatedWorkerCompatibilityResult.fromJsPayload ${payload!}');
+        break;
+      case SharedWorkerCompatibilityResult.type:
+        print('SharedWorkerCompatibilityResult.fromJsPayload ${payload!}');
+        break;
+      case DeleteDatabase.type:
+        print('DeleteDatabase.fromJsPayload ${payload!}');
+        break;
+      default:
+        throw ArgumentError('Unknown type $type');
+    }
+
     return switch (type) {
-      WorkerError.type => WorkerError.fromJsPayload(payload!),
-      ServeDriftDatabase.type => ServeDriftDatabase.fromJsPayload(payload!),
+      WorkerError.type => WorkerError.fromJsPayload(payload),
+      ServeDriftDatabase.type => ServeDriftDatabase.fromJsPayload(payload),
       StartFileSystemServer.type =>
-        StartFileSystemServer.fromJsPayload(payload!),
+        StartFileSystemServer.fromJsPayload(payload),
       RequestCompatibilityCheck.type =>
         RequestCompatibilityCheck.fromJsPayload(payload),
       DedicatedWorkerCompatibilityResult.type =>
-        DedicatedWorkerCompatibilityResult.fromJsPayload(payload!),
+        DedicatedWorkerCompatibilityResult.fromJsPayload(payload),
       SharedWorkerCompatibilityResult.type =>
-        SharedWorkerCompatibilityResult.fromJsPayload(payload!),
-      DeleteDatabase.type => DeleteDatabase.fromJsPayload(payload!),
+        SharedWorkerCompatibilityResult.fromJsPayload(payload),
+      DeleteDatabase.type => DeleteDatabase.fromJsPayload(payload),
       _ => throw ArgumentError('Unknown type $type'),
     };
   }
@@ -39,6 +65,7 @@ sealed class WasmInitializationMessage {
     // Not using event.data because we don't want the SDK to dartify the raw JS
     // object we're passing around.
     final rawData = getProperty<Object>(event, 'data');
+    print('Received message from worker: $rawData');
     return WasmInitializationMessage.fromJs(rawData);
   }
 

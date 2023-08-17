@@ -170,10 +170,18 @@ class DriftServerController {
   void serve(
     ServeDriftDatabase message,
   ) {
+    print('DriftServerController.serve starting: ');
+    print('  message.databaseName: ${message.databaseName}');
+    print('  message.initializationPort: ${message.initializationPort}');
+    print('  message.port: ${message.port}');
+    print('  message.sqlite3WasmUri: ${message.sqlite3WasmUri}');
+    print('  message.storage.name: ${message.storage.name}');
     final server = servers.putIfAbsent(message.databaseName, () {
+      print('DriftServerController.serve putIfAbsent starting');
       final server = DriftServer(LazyDatabase(() async {
+        print('DriftServer LazyDatabase starting');
         final sqlite3 = await WasmSqlite3.loadFromUrl(message.sqlite3WasmUri);
-
+        print('DriftServerController await switch starting');
         final vfs = await switch (message.storage) {
           WasmStorageImplementation.opfsShared =>
             SimpleOpfsFileSystem.loadFromStorage(
@@ -186,6 +194,7 @@ class DriftServerController {
           WasmStorageImplementation.inMemory =>
             Future.value(InMemoryFileSystem()),
         };
+        print('DriftServerController await switch finished');
 
         final initPort = message.initializationPort;
         if (vfs.xAccess('/database', 0) == 0 && initPort != null) {
@@ -202,8 +211,10 @@ class DriftServerController {
           }
         }
 
+        print('DriftServerController register vfs starting.');
         sqlite3.registerVirtualFileSystem(vfs, makeDefault: true);
 
+        print('DriftServerController finishing.');
         return WasmDatabase(sqlite3: sqlite3, path: '/database');
       }));
 
