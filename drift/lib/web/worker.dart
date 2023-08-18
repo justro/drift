@@ -196,10 +196,13 @@ class _RunningDriftWorker {
   _RunningDriftWorker(this.isShared, this.connectionFactory);
 
   void start() {
+    print('_RunningDriftWorker.start');
     if (isShared) {
+      print('_RunningDriftWorker.start isShared');
       const event = EventStreamProvider<MessageEvent>('connect');
       event.forTarget(self).listen(_newConnection);
     } else {
+      print('_RunningDriftWorker.start not isShared');
       const event = EventStreamProvider<MessageEvent>('message');
       event.forTarget(self).map((e) => e.data).listen(_handleMessage);
     }
@@ -227,6 +230,7 @@ class _RunningDriftWorker {
 
   /// Handle a new connection, which implies that this worker is shared.
   void _newConnection(MessageEvent event) {
+    print('_RunningDriftWorker._newConnection, isShared: $isShared');
     assert(isShared);
     final outgoingPort = event.ports.first;
 
@@ -244,16 +248,19 @@ class _RunningDriftWorker {
 
     subscription = originalChannel.stream.listen((first) {
       final expectedMode = DriftWorkerMode.values.byName(first as String);
+      print('_RunningDriftWorker._newConnection expectedMode: $first');
 
       if (_knownMode == null) {
         switch (expectedMode) {
           case DriftWorkerMode.dedicated:
+            print('_RunningDriftWorker._newConnection expectedMode: dedicated');
             // This is a shared worker, so this mode won't work
             originalChannel.sink
               ..add(false)
               ..close();
             break;
           case DriftWorkerMode.shared:
+            print('_RunningDriftWorker._newConnection expectedMode: shared');
             // Ok, we're supposed to run a drift server in this worker. Let's do
             // that then.
             final server =
@@ -262,6 +269,8 @@ class _RunningDriftWorker {
             server.serve(remainingChannel());
             break;
           case DriftWorkerMode.dedicatedInShared:
+            print(
+                '_RunningDriftWorker._newConnection expectedMode: dedicatedInShared');
             // Instead of running a server ourselves, we're starting a dedicated
             // child worker and forward the port.
             _knownMode = DriftWorkerMode.dedicatedInShared;
@@ -278,6 +287,8 @@ class _RunningDriftWorker {
             break;
         }
       } else if (_knownMode == expectedMode) {
+        print(
+            '_RunningDriftWorker._newConnection _knownMode == expectedMode == ${_knownMode.toString()}}');
         outgoingPort.postMessage(true);
         switch (_knownMode!) {
           case DriftWorkerMode.dedicated:
@@ -292,6 +303,7 @@ class _RunningDriftWorker {
             break;
         }
       } else {
+        print('_RunningDriftWorker._newConnection unsupported mode');
         // Unsupported mode
         originalChannel.sink
           ..add(false)

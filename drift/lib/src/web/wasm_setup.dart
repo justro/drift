@@ -136,7 +136,7 @@ class WasmDatabaseOpener {
   }
 
   Future<void> _probeShared() async {
-    print('WasmDatabaseOpener._probeDedicated');
+    print('WasmDatabaseOpener._probeShared');
     if (supportsSharedWorkers) {
       final sharedWorker =
           SharedWorker(driftWorkerUri.toString(), 'drift worker');
@@ -311,7 +311,7 @@ final class _ProbeResult implements WasmProbeResult {
     VirtualFileSystem vfs,
     FutureOr<Uint8List?> Function()? initializer,
   ) async {
-    print('WasmDatabaseOpener._probeDedicated');
+    print('WasmDatabaseOpener._hostDatabaseLocally');
     final sqlite3 = await WasmSqlite3.loadFromUrl(opener.sqlite3WasmUri);
     sqlite3.registerVirtualFileSystem(vfs);
 

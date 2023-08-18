@@ -21,11 +21,13 @@ class SharedDriftWorker {
   SharedDriftWorker(this.self);
 
   void start() {
+    print('Shared worker started');
     const event = EventStreamProvider<MessageEvent>('connect');
     event.forTarget(self).listen(_newConnection);
   }
 
   void _newConnection(MessageEvent event) async {
+    print('Shared worker got new connection');
     final clientPort = event.ports[0];
     clientPort.onMessage
         .listen((event) => _messageFromClient(clientPort, event));

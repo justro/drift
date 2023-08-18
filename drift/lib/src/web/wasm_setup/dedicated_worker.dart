@@ -23,6 +23,7 @@ class DedicatedDriftWorker {
   void start() {
     print('dedicated worker started');
     self.onMessage.listen((event) {
+      print('dedicated worker got message');
       final message = WasmInitializationMessage.read(event);
       _handleMessage(message);
     });
